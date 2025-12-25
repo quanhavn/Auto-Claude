@@ -91,6 +91,10 @@ export interface AppSettings {
   globalGoogleApiKey?: string;
   globalGroqApiKey?: string;
   globalOpenRouterApiKey?: string;
+  // Claude Authentication Mode
+  claudeAuthMode?: 'oauth' | 'apikey';
+  globalAnthropicBaseUrl?: string;
+  globalAnthropicModel?: string;
   // Graphiti LLM provider settings
   graphitiLlmProvider?: 'openai' | 'anthropic' | 'google' | 'groq' | 'ollama';
   ollamaBaseUrl?: string;

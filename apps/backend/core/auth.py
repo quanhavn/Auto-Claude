@@ -12,19 +12,18 @@ import platform
 import subprocess
 
 # Priority order for auth token resolution
-# NOTE: We intentionally do NOT fall back to ANTHROPIC_API_KEY.
-# Auto Claude is designed to use Claude Code OAuth tokens only.
-# This prevents silent billing to user's API credits when OAuth fails.
+# OAuth is preferred, but API keys are supported for advanced use cases
 AUTH_TOKEN_ENV_VARS = [
-    "CLAUDE_CODE_OAUTH_TOKEN",  # OAuth token from Claude Code CLI
-    "ANTHROPIC_AUTH_TOKEN",  # CCR/proxy token (for enterprise setups)
+    "CLAUDE_CODE_OAUTH_TOKEN",  # OAuth token from Claude Code CLI (priority 1)
+    "ANTHROPIC_AUTH_TOKEN",  # CCR/proxy token (for enterprise setups) (priority 2)
+    "ANTHROPIC_API_KEY",  # API key for direct billing (priority 3)
 ]
 
 # Environment variables to pass through to SDK subprocess
-# NOTE: ANTHROPIC_API_KEY is intentionally excluded to prevent silent API billing
 SDK_ENV_VARS = [
     "ANTHROPIC_BASE_URL",
     "ANTHROPIC_AUTH_TOKEN",
+    "ANTHROPIC_API_KEY",
     "NO_PROXY",
     "DISABLE_TELEMETRY",
     "DISABLE_COST_WARNINGS",
@@ -127,6 +126,28 @@ def get_auth_token_source() -> str | None:
     return None
 
 
+def get_auth_type() -> str:
+    """
+    Get the authentication type being used.
+
+    Returns:
+        'oauth' for OAuth tokens (sk-ant-oat01-)
+        'apikey' for API keys (sk-ant-api)
+        'enterprise' for enterprise/CCR tokens
+        'none' if no token is found
+    """
+    token = get_auth_token()
+    if not token:
+        return "none"
+
+    if token.startswith("sk-ant-oat01-"):
+        return "oauth"
+    elif token.startswith("sk-ant-api"):
+        return "apikey"
+    else:
+        return "enterprise"
+
+
 def require_auth_token() -> str:
     """
     Get authentication token or raise ValueError.
@@ -137,23 +158,31 @@ def require_auth_token() -> str:
     token = get_auth_token()
     if not token:
         error_msg = (
-            "No OAuth token found.\n\n"
-            "Auto Claude requires Claude Code OAuth authentication.\n"
-            "Direct API keys (ANTHROPIC_API_KEY) are not supported.\n\n"
+            "No authentication token found.\n\n"
+            "Auto Claude supports OAuth (recommended) or API key authentication.\n\n"
         )
         # Provide platform-specific guidance
         if platform.system() == "Darwin":
             error_msg += (
                 "To authenticate:\n"
+                "Option 1 (OAuth - Recommended):\n"
                 "  1. Run: claude setup-token\n"
                 "  2. The token will be saved to macOS Keychain automatically\n\n"
-                "Or set CLAUDE_CODE_OAUTH_TOKEN in your .env file."
+                "Option 2 (API Key):\n"
+                "  1. Get your API key from https://console.anthropic.com/\n"
+                "  2. Set ANTHROPIC_API_KEY in your .env file\n"
+                "  Note: API key usage will be billed to your Anthropic account."
             )
         else:
             error_msg += (
                 "To authenticate:\n"
+                "Option 1 (OAuth - Recommended):\n"
                 "  1. Run: claude setup-token\n"
-                "  2. Set CLAUDE_CODE_OAUTH_TOKEN in your .env file"
+                "  2. Set CLAUDE_CODE_OAUTH_TOKEN in your .env file\n\n"
+                "Option 2 (API Key):\n"
+                "  1. Get your API key from https://console.anthropic.com/\n"
+                "  2. Set ANTHROPIC_API_KEY in your .env file\n"
+                "  Note: API key usage will be billed to your Anthropic account."
             )
         raise ValueError(error_msg)
     return token

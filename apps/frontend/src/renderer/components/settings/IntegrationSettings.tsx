@@ -43,6 +43,7 @@ export function IntegrationSettings({ settings, onSettingsChange, isOpen }: Inte
   const { t: tCommon } = useTranslation('common');
   // Password visibility toggle for global API keys
   const [showGlobalOpenAIKey, setShowGlobalOpenAIKey] = useState(false);
+  const [showAnthropicKey, setShowAnthropicKey] = useState(false);
 
   // Claude Accounts state
   const [claudeProfiles, setClaudeProfiles] = useState<ClaudeProfile[]>([]);
@@ -732,6 +733,118 @@ export function IntegrationSettings({ settings, onSettingsChange, isOpen }: Inte
             </div>
           </div>
         )}
+
+        {/* Claude Authentication Mode Section */}
+        <div className="space-y-4 pt-4 border-t border-border">
+          <div className="flex items-center gap-2">
+            <Key className="h-4 w-4 text-muted-foreground" />
+            <h4 className="text-sm font-semibold text-foreground">
+              Claude Authentication
+            </h4>
+          </div>
+
+          <div className="rounded-lg bg-muted/30 border border-border p-4 space-y-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Authentication Method</Label>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id="oauth"
+                    name="claudeAuthMode"
+                    value="oauth"
+                    checked={settings.claudeAuthMode === 'oauth' || !settings.claudeAuthMode}
+                    onChange={() => onSettingsChange({ ...settings, claudeAuthMode: 'oauth' })}
+                    className="h-4 w-4"
+                  />
+                  <Label htmlFor="oauth" className="font-normal cursor-pointer">
+                    OAuth (Recommended) - Free tier, browser-based login
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id="apikey"
+                    name="claudeAuthMode"
+                    value="apikey"
+                    checked={settings.claudeAuthMode === 'apikey'}
+                    onChange={() => onSettingsChange({ ...settings, claudeAuthMode: 'apikey' })}
+                    className="h-4 w-4"
+                  />
+                  <Label htmlFor="apikey" className="font-normal cursor-pointer">
+                    API Key (Advanced) - Direct billing, custom endpoints
+                  </Label>
+                </div>
+              </div>
+            </div>
+
+            {settings.claudeAuthMode === 'apikey' && (
+              <div className="space-y-4 pl-6 border-l-2 border-primary/20">
+                {/* API Key Input */}
+                <div className="space-y-2">
+                  <Label htmlFor="anthropicApiKey" className="text-sm font-medium">
+                    Anthropic API Key
+                  </Label>
+                  <div className="relative max-w-lg">
+                    <Input
+                      id="anthropicApiKey"
+                      type={showAnthropicKey ? 'text' : 'password'}
+                      placeholder="sk-ant-api-..."
+                      value={settings.globalAnthropicApiKey || ''}
+                      onChange={(e) =>
+                        onSettingsChange({
+                          ...settings,
+                          globalAnthropicApiKey: e.target.value || undefined
+                        })
+                      }
+                      className="pr-10 font-mono text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowAnthropicKey(!showAnthropicKey)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      {showAnthropicKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Base URL Input */}
+                <div className="space-y-2">
+                  <Label htmlFor="anthropicBaseUrl" className="text-sm font-medium">
+                    Base URL (Optional)
+                  </Label>
+                  <Input
+                    id="anthropicBaseUrl"
+                    type="text"
+                    placeholder="https://api.anthropic.com"
+                    value={settings.globalAnthropicBaseUrl || ''}
+                    onChange={(e) =>
+                      onSettingsChange({
+                        ...settings,
+                        globalAnthropicBaseUrl: e.target.value || undefined
+                      })
+                    }
+                    className="max-w-lg text-sm"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Leave empty for default Anthropic endpoint
+                  </p>
+                </div>
+
+                <div className="rounded-lg bg-warning/10 border border-warning/30 p-3">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="h-4 w-4 text-warning shrink-0 mt-0.5" />
+                    <p className="text-xs text-muted-foreground">
+                      API key usage will be billed directly to your Anthropic account.
+                      OAuth is recommended for free tier access.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* API Keys Section */}
         <div className="space-y-4 pt-4 border-t border-border">

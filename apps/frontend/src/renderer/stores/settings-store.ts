@@ -32,6 +32,22 @@ export const useSettingsStore = create<SettingsState>((set) => ({
 }));
 
 /**
+ * Migrate settings for Claude auth mode.
+ * Default to OAuth for existing users.
+ */
+function migrateClaudeAuth(settings: AppSettings): AppSettings {
+  let migrated = { ...settings };
+
+  // Set claudeAuthMode if not defined
+  if (!migrated.claudeAuthMode) {
+    // Default to API key mode if user has an Anthropic API key, otherwise OAuth
+    migrated.claudeAuthMode = migrated.globalAnthropicApiKey ? 'apikey' : 'oauth';
+  }
+
+  return migrated;
+}
+
+/**
  * Check if settings need migration for onboardingCompleted flag.
  * Existing users (with tokens or projects configured) should have
  * onboardingCompleted set to true to skip the onboarding wizard.
@@ -69,14 +85,21 @@ export async function loadSettings(): Promise<void> {
   try {
     const result = await window.electronAPI.getSettings();
     if (result.success && result.data) {
-      // Apply migration for onboardingCompleted flag
-      const migratedSettings = migrateOnboardingCompleted(result.data);
+      // Apply migrations
+      let migratedSettings = migrateOnboardingCompleted(result.data);
+      migratedSettings = migrateClaudeAuth(migratedSettings);
+
       store.setSettings(migratedSettings);
 
-      // If migration changed the settings, persist them
-      if (migratedSettings.onboardingCompleted !== result.data.onboardingCompleted) {
+      // If any migration changed the settings, persist them
+      const settingsChanged =
+        migratedSettings.onboardingCompleted !== result.data.onboardingCompleted ||
+        migratedSettings.claudeAuthMode !== result.data.claudeAuthMode;
+
+      if (settingsChanged) {
         await window.electronAPI.saveSettings({
-          onboardingCompleted: migratedSettings.onboardingCompleted
+          onboardingCompleted: migratedSettings.onboardingCompleted,
+          claudeAuthMode: migratedSettings.claudeAuthMode,
         });
       }
     }
