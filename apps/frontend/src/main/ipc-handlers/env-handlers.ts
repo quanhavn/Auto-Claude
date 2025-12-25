@@ -116,6 +116,10 @@ export function registerEnvHandlers(
 # Claude Code OAuth Token (REQUIRED)
 CLAUDE_CODE_OAUTH_TOKEN=${existingVars['CLAUDE_CODE_OAUTH_TOKEN'] || ''}
 
+# Claude API Key (alternative to OAuth for direct billing)
+${existingVars['ANTHROPIC_API_KEY'] ? `ANTHROPIC_API_KEY=${existingVars['ANTHROPIC_API_KEY']}` : '# ANTHROPIC_API_KEY='}
+${existingVars['ANTHROPIC_BASE_URL'] ? `ANTHROPIC_BASE_URL=${existingVars['ANTHROPIC_BASE_URL']}` : '# ANTHROPIC_BASE_URL='}
+
 # Model override (OPTIONAL)
 ${existingVars['AUTO_BUILD_MODEL'] ? `AUTO_BUILD_MODEL=${existingVars['AUTO_BUILD_MODEL']}` : '# AUTO_BUILD_MODEL=claude-opus-4-5-20251101'}
 

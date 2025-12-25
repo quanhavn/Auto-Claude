@@ -15,6 +15,8 @@ import logging
 import sys
 from typing import TYPE_CHECKING
 
+from phase_config import resolve_model_id
+
 if TYPE_CHECKING:
     from .resolver import AIResolver
 
@@ -52,13 +54,17 @@ def create_claude_resolver() -> AIResolver:
         """Call Claude using the Agent SDK for merge resolution."""
 
         async def _run_merge() -> str:
+            # Import SDK environment vars helper
+            from core.auth import get_sdk_env_vars
+
             # Create a minimal client for merge resolution
             client = ClaudeSDKClient(
                 options=ClaudeAgentOptions(
-                    model="sonnet",
+                    model=resolve_model_id("sonnet"),
                     system_prompt=system,
                     allowed_tools=[],  # No tools needed for merge
                     max_turns=1,
+                    env=get_sdk_env_vars(),  # Pass global config (custom base URL, API key)
                 )
             )
 

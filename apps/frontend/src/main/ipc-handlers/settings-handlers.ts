@@ -13,6 +13,7 @@ import type { BrowserWindow } from 'electron';
 import { getEffectiveVersion } from '../auto-claude-updater';
 import { setUpdateChannel } from '../app-updater';
 import { getSettingsPath, readSettingsFile } from '../settings-utils';
+import { updateGlobalConfig } from '../global-config';
 
 const settingsPath = getSettingsPath();
 
@@ -138,6 +139,31 @@ export function registerSettingsHandlers(
         }
       }
 
+      // Sync custom model IDs to global config on load (ensure config file exists)
+      // This ensures backend can always read the latest settings
+      if (
+        settings.customHaikuModelId ||
+        settings.customSonnetModelId ||
+        settings.customOpusModelId ||
+        settings.globalAnthropicBaseUrl ||
+        settings.globalAnthropicApiKey ||
+        settings.claudeAuthMode
+      ) {
+        try {
+          updateGlobalConfig({
+            customHaikuModelId: settings.customHaikuModelId,
+            customSonnetModelId: settings.customSonnetModelId,
+            customOpusModelId: settings.customOpusModelId,
+            globalAnthropicBaseUrl: settings.globalAnthropicBaseUrl,
+            globalAnthropicApiKey: settings.globalAnthropicApiKey,
+            claudeAuthMode: settings.claudeAuthMode
+          });
+        } catch (error) {
+          console.error('[SETTINGS_GET] Failed to sync global config:', error);
+          // Non-fatal
+        }
+      }
+
       return { success: true, data: settings as AppSettings };
     }
   );
@@ -161,6 +187,31 @@ export function registerSettingsHandlers(
         if (settings.betaUpdates !== undefined) {
           const channel = settings.betaUpdates ? 'beta' : 'latest';
           setUpdateChannel(channel);
+        }
+
+        // Sync custom model IDs, base URL, and auth mode to shared global config
+        // This config file is read by both frontend and backend
+        if (
+          settings.customHaikuModelId !== undefined ||
+          settings.customSonnetModelId !== undefined ||
+          settings.customOpusModelId !== undefined ||
+          settings.globalAnthropicBaseUrl !== undefined ||
+          settings.globalAnthropicApiKey !== undefined ||
+          settings.claudeAuthMode !== undefined
+        ) {
+          try {
+            updateGlobalConfig({
+              customHaikuModelId: newSettings.customHaikuModelId,
+              customSonnetModelId: newSettings.customSonnetModelId,
+              customOpusModelId: newSettings.customOpusModelId,
+              globalAnthropicBaseUrl: newSettings.globalAnthropicBaseUrl,
+              globalAnthropicApiKey: newSettings.globalAnthropicApiKey,
+              claudeAuthMode: newSettings.claudeAuthMode
+            });
+          } catch (error) {
+            console.error('[SETTINGS_SAVE] Failed to update global config:', error);
+            // Non-fatal - settings are still saved to settings.json
+          }
         }
 
         return { success: true };

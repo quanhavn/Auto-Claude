@@ -29,6 +29,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 # Load .env file from auto-claude/ directory
 from dotenv import load_dotenv
 
+from phase_config import resolve_model_id
+
 env_file = Path(__file__).parent.parent / ".env"
 if env_file.exists():
     load_dotenv(env_file)
@@ -94,8 +96,8 @@ def main():
     parser.add_argument(
         "--model",
         type=str,
-        default="claude-opus-4-5-20251101",
-        help="Model to use (default: claude-opus-4-5-20251101)",
+        default="opus",
+        help="Model to use (shorthand: haiku/sonnet/opus, or full ID)",
     )
     parser.add_argument(
         "--thinking-level",
@@ -133,6 +135,9 @@ def main():
             print(f"Valid types: {IDEATION_TYPES}")
             sys.exit(1)
 
+    # Resolve model ID to support custom models
+    resolved_model = resolve_model_id(args.model)
+
     orchestrator = IdeationOrchestrator(
         project_dir=project_dir,
         output_dir=args.output,
@@ -140,7 +145,7 @@ def main():
         include_roadmap_context=not args.no_roadmap,
         include_kanban_context=not args.no_kanban,
         max_ideas_per_type=args.max_ideas,
-        model=args.model,
+        model=resolved_model,
         thinking_level=args.thinking_level,
         refresh=args.refresh,
         append=args.append,

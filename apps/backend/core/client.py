@@ -161,6 +161,7 @@ def create_client(
        (see security.py for ALLOWED_COMMANDS)
     4. Tool filtering - Each agent type only sees relevant tools (prevents misuse)
     """
+    # Standard auth flow - OAuth or API key
     oauth_token = require_auth_token()
     # Ensure SDK can access it via its expected env var
     os.environ["CLAUDE_CODE_OAUTH_TOKEN"] = oauth_token

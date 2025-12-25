@@ -29,7 +29,8 @@ from ui import (
 )
 
 # Configuration
-DEFAULT_MODEL = "claude-opus-4-5-20251101"
+# Use shorthand that will be resolved via resolve_model_id()
+DEFAULT_MODEL = "opus"
 
 
 def setup_environment() -> Path:
@@ -96,18 +97,27 @@ def validate_environment(spec_dir: Path) -> bool:
     """
     valid = True
 
-    # Check for OAuth token (API keys are not supported)
+    # Check for authentication token
     if not get_auth_token():
-        print("Error: No OAuth token found")
-        print("\nAuto Claude requires Claude Code OAuth authentication.")
-        print("Direct API keys (ANTHROPIC_API_KEY) are not supported.")
+        print("Error: No authentication token found")
+        print("\nAuto Claude supports OAuth (recommended) or API key authentication.")
         print("\nTo authenticate, run:")
         print("  claude setup-token")
+        print("\nOr set ANTHROPIC_API_KEY in your .env file (for direct billing)")
         valid = False
     else:
-        # Show which auth source is being used
+        # Show which auth source and type is being used
+        from core.auth import get_auth_type
+
         source = get_auth_token_source()
-        if source:
+        auth_type = get_auth_type()
+
+        if auth_type == "apikey":
+            print(f"⚠️  Auth: API Key (direct billing - {source})")
+            print("   Charges apply to your Anthropic account")
+        elif auth_type == "oauth":
+            print(f"✓ Auth: OAuth (free tier - {source})")
+        else:
             print(f"Auth: {source}")
 
         # Show custom base URL if set

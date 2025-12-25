@@ -20,6 +20,7 @@ Public API is exported via workspace/__init__.py for backward compatibility.
 import subprocess
 from pathlib import Path
 
+from phase_config import resolve_model_id
 from ui import (
     Icons,
     bold,
@@ -1249,13 +1250,17 @@ async def _merge_file_with_ai_async(
                     error="claude_agent_sdk not installed",
                 )
 
+            # Import SDK environment vars helper
+            from core.auth import get_sdk_env_vars
+
             client = ClaudeSDKClient(
                 options=ClaudeAgentOptions(
-                    model="claude-haiku-4-5-20251001",
+                    model=resolve_model_id("haiku"),
                     system_prompt=AI_MERGE_SYSTEM_PROMPT,
                     allowed_tools=[],
                     max_turns=1,
                     max_thinking_tokens=1024,  # Low thinking for speed
+                    env=get_sdk_env_vars(),  # Pass global config (custom base URL, API key)
                 )
             )
 

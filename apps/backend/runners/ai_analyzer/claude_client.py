@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from phase_config import resolve_model_id
+
 try:
     from claude_agent_sdk import ClaudeAgentOptions, ClaudeSDKClient
 
@@ -17,7 +19,7 @@ except ImportError:
 class ClaudeAnalysisClient:
     """Wrapper for Claude SDK client with analysis-specific configuration."""
 
-    DEFAULT_MODEL = "claude-sonnet-4-5-20250929"
+    DEFAULT_MODEL = "sonnet"
     ALLOWED_TOOLS = ["Read", "Glob", "Grep"]
     MAX_TURNS = 50
 
@@ -108,14 +110,18 @@ class ClaudeAnalysisClient:
             f"Output your analysis as valid JSON only."
         )
 
+        # Import SDK environment vars helper
+        from core.auth import get_sdk_env_vars
+
         return ClaudeSDKClient(
             options=ClaudeAgentOptions(
-                model=self.DEFAULT_MODEL,
+                model=resolve_model_id(self.DEFAULT_MODEL),
                 system_prompt=system_prompt,
                 allowed_tools=self.ALLOWED_TOOLS,
                 max_turns=self.MAX_TURNS,
                 cwd=str(self.project_dir.resolve()),
                 settings=str(settings_file.resolve()),
+                env=get_sdk_env_vars(),  # Pass global config (custom base URL, API key)
             )
         )
 

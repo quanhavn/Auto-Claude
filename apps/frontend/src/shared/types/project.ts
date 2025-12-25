@@ -296,6 +296,7 @@ export interface ProjectEnvConfig {
   // Uses LadybugDB embedded database (no Docker required, Python 3.12+)
   graphitiEnabled: boolean;
   graphitiProviderConfig?: GraphitiProviderConfig;  // Provider configuration
+
   // Legacy fields (still supported for backward compatibility)
   openaiApiKey?: string;
   // Indicates if the OpenAI key is from global settings (not project-specific)

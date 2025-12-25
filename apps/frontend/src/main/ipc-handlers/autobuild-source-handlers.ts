@@ -7,6 +7,7 @@ import { existsSync, readFileSync, writeFileSync } from 'fs';
 import type { AutoBuildSourceUpdateProgress, SourceEnvConfig, SourceEnvCheckResult } from '../../shared/types';
 import { checkForUpdates as checkSourceUpdates, downloadAndApplyUpdate, getBundledVersion, getEffectiveVersion, getEffectiveSourcePath } from '../auto-claude-updater';
 import { debugLog } from '../../shared/utils/debug-logger';
+import { loadGlobalConfig } from '../global-config';
 
 
 /**
@@ -300,7 +301,17 @@ export function registerAutobuildSourceHandlers(
 
         const content = readFileSync(envPath, 'utf-8');
         const vars = parseSourceEnvFile(content);
-        const hasToken = !!vars['CLAUDE_CODE_OAUTH_TOKEN'] && vars['CLAUDE_CODE_OAUTH_TOKEN'].length > 0;
+
+        // Check OAuth token (traditional method)
+        const hasOAuthToken = !!vars['CLAUDE_CODE_OAUTH_TOKEN'] && vars['CLAUDE_CODE_OAUTH_TOKEN'].length > 0;
+
+        // Check API key mode (from global config)
+        const globalConfig = loadGlobalConfig();
+        const isApiKeyMode = globalConfig?.claudeAuthMode === 'apikey';
+        const hasApiKey = !!globalConfig?.globalAnthropicApiKey && globalConfig.globalAnthropicApiKey.length > 0;
+
+        // Has token if either OAuth OR (API key mode AND has API key)
+        const hasToken = hasOAuthToken || (isApiKeyMode && hasApiKey);
 
         return {
           success: true,

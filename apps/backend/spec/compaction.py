@@ -16,7 +16,7 @@ from core.auth import get_sdk_env_vars, require_auth_token
 async def summarize_phase_output(
     phase_name: str,
     phase_output: str,
-    model: str = "claude-sonnet-4-5-20250929",
+    model: str = "sonnet",  # Use shorthand that will be resolved via resolve_model_id()
     target_words: int = 500,
 ) -> str:
     """
@@ -58,9 +58,13 @@ Be concise and use bullet points. Skip boilerplate and meta-commentary.
 ## Summary:
 """
 
+    # Resolve model shorthand to full model ID
+    from phase_config import resolve_model_id
+    resolved_model = resolve_model_id(model)
+
     client = ClaudeSDKClient(
         options=ClaudeAgentOptions(
-            model=model,
+            model=resolved_model,
             system_prompt=(
                 "You are a concise technical summarizer. Extract only the most "
                 "critical information from phase outputs. Use bullet points. "

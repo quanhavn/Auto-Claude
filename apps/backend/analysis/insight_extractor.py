@@ -366,6 +366,9 @@ async def run_insight_extraction(
     cwd = str(project_dir.resolve()) if project_dir else os.getcwd()
 
     try:
+        # Import SDK environment vars helper
+        from core.auth import get_sdk_env_vars
+
         # Create a minimal SDK client for insight extraction
         # No tools needed - just text generation
         client = ClaudeSDKClient(
@@ -378,6 +381,7 @@ async def run_insight_extraction(
                 allowed_tools=[],  # No tools needed for extraction
                 max_turns=1,  # Single turn extraction
                 cwd=cwd,
+                env=get_sdk_env_vars(),  # Pass global config (custom base URL, API key)
             )
         )
 
