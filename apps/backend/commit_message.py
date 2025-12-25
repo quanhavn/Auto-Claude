@@ -20,6 +20,8 @@ import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from phase_config import resolve_model_id
+
 if TYPE_CHECKING:
     pass
 
@@ -202,13 +204,17 @@ async def _call_claude_haiku(prompt: str) -> str:
         logger.warning("claude_agent_sdk not installed")
         return ""
 
+    # Import SDK environment vars helper
+    from core.auth import get_sdk_env_vars
+
     client = ClaudeSDKClient(
         options=ClaudeAgentOptions(
-            model="claude-haiku-4-5-20251001",
+            model=resolve_model_id("haiku"),
             system_prompt=SYSTEM_PROMPT,
             allowed_tools=[],
             max_turns=1,
             max_thinking_tokens=1024,  # Low thinking for speed
+            env=get_sdk_env_vars(),  # Pass global config (custom base URL, API key)
         )
     )
 

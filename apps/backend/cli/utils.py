@@ -29,7 +29,8 @@ from ui import (
 )
 
 # Configuration
-DEFAULT_MODEL = "claude-opus-4-5-20251101"
+# Use shorthand that will be resolved via resolve_model_id()
+DEFAULT_MODEL = "opus"
 
 
 def setup_environment() -> Path:

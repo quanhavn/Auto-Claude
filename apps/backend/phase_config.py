@@ -92,6 +92,11 @@ Phase = Literal["spec", "planning", "coding", "qa"]
 def resolve_model_id(model: str) -> str:
     """
     Resolve a model shorthand (haiku, sonnet, opus) to a full model ID.
+    Checks multiple sources in priority order:
+    1. Global config file (~/.auto-claude/config.json)
+    2. Environment variables (CUSTOM_*_MODEL)
+    3. Hardcoded defaults (MODEL_ID_MAP)
+
     If the model is already a full ID, return it unchanged.
 
     Args:
@@ -100,11 +105,52 @@ def resolve_model_id(model: str) -> str:
     Returns:
         Full Claude model ID
     """
-    # Check if it's a shorthand
+    import os
+    import logging
+
+    # If model is a shorthand, check for custom override
     if model in MODEL_ID_MAP:
-        return MODEL_ID_MAP[model]
+        # Priority 1: Check global config file
+        try:
+            from config import get_custom_model_id
+
+            custom_model_id = get_custom_model_id(model)
+            if custom_model_id:
+                logging.info(
+                    f"[resolve_model_id] Using custom model from config file: {model} → {custom_model_id}"
+                )
+                return custom_model_id
+        except (ImportError, Exception) as e:
+            # Config module not available or error reading - continue to next priority
+            logging.debug(
+                f"[resolve_model_id] Config file not available for {model}: {e}"
+            )
+
+        # Priority 2: Check environment variables
+        env_var_map = {
+            "haiku": "CUSTOM_HAIKU_MODEL",
+            "sonnet": "CUSTOM_SONNET_MODEL",
+            "opus": "CUSTOM_OPUS_MODEL",
+        }
+
+        custom_env_var = env_var_map.get(model)
+        if custom_env_var:
+            custom_model_id = os.environ.get(custom_env_var)
+            if custom_model_id:
+                logging.info(
+                    f"[resolve_model_id] Using custom model from env: {model} → {custom_model_id}"
+                )
+                return custom_model_id
+
+        # Priority 3: Fall back to default mapping
+        default_id = MODEL_ID_MAP[model]
+        logging.debug(
+            f"[resolve_model_id] Using default model: {model} → {default_id}"
+        )
+        return default_id
 
     # Already a full model ID
+    logging.debug(f"[resolve_model_id] Full model ID provided: {model}")
     return model
 
 

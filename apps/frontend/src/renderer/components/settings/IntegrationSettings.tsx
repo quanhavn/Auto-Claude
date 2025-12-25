@@ -61,6 +61,9 @@ export function IntegrationSettings({ settings, onSettingsChange, isOpen }: Inte
   const [showManualToken, setShowManualToken] = useState(false);
   const [savingTokenProfileId, setSavingTokenProfileId] = useState<string | null>(null);
 
+  // Custom models state
+  const [showCustomModels, setShowCustomModels] = useState(false);
+
   // Auto-swap settings state
   const [autoSwitchSettings, setAutoSwitchSettings] = useState<ClaudeAutoSwitchSettings | null>(null);
   const [isLoadingAutoSwitch, setIsLoadingAutoSwitch] = useState(false);
@@ -830,6 +833,145 @@ export function IntegrationSettings({ settings, onSettingsChange, isOpen }: Inte
                   <p className="text-xs text-muted-foreground">
                     Leave empty for default Anthropic endpoint
                   </p>
+                </div>
+
+                {/* Custom Model IDs Section (Improved) */}
+                <div className="space-y-3 pt-4 border-t border-border/50">
+                  <button
+                    onClick={() => setShowCustomModels(!showCustomModels)}
+                    className="flex items-center justify-between w-full hover:opacity-80 transition-opacity"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Label className="text-sm font-medium cursor-pointer">
+                        Custom Model IDs
+                      </Label>
+                      {((settings.customHaikuModelId || settings.customSonnetModelId || settings.customOpusModelId) && (
+                        <span className="px-1.5 py-0.5 text-xs bg-primary/10 text-primary rounded font-medium">
+                          {[settings.customHaikuModelId, settings.customSonnetModelId, settings.customOpusModelId].filter(Boolean).length} active
+                        </span>
+                      ))}
+                    </div>
+                    {showCustomModels ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                  </button>
+
+                  <p className="text-xs text-muted-foreground">
+                    Override defaults for proxy setups (CCR, LiteLLM) or beta model access. Leave empty to use standard Claude models.
+                  </p>
+
+                  {showCustomModels && (
+                    <div className="space-y-3 pl-4 border-l-2 border-primary/20">
+                      {/* Haiku Input with Reset */}
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="customHaikuModelId" className="text-xs text-muted-foreground">
+                            Haiku Model ID
+                          </Label>
+                          {settings.customHaikuModelId && (
+                            <button
+                              onClick={() => onSettingsChange({ ...settings, customHaikuModelId: undefined })}
+                              className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                            >
+                              <RefreshCw className="h-3 w-3" />
+                              Reset
+                            </button>
+                          )}
+                        </div>
+                        <Input
+                          id="customHaikuModelId"
+                          type="text"
+                          placeholder="claude-haiku-4-5-20251001 (default)"
+                          value={settings.customHaikuModelId || ''}
+                          onChange={(e) =>
+                            onSettingsChange({
+                              ...settings,
+                              customHaikuModelId: e.target.value || undefined
+                            })
+                          }
+                          className="max-w-lg text-sm font-mono"
+                        />
+                        {settings.customHaikuModelId && (
+                          <div className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                            <Check className="h-3 w-3" />
+                            Custom active
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Sonnet Input with Reset */}
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="customSonnetModelId" className="text-xs text-muted-foreground">
+                            Sonnet Model ID
+                          </Label>
+                          {settings.customSonnetModelId && (
+                            <button
+                              onClick={() => onSettingsChange({ ...settings, customSonnetModelId: undefined })}
+                              className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                            >
+                              <RefreshCw className="h-3 w-3" />
+                              Reset
+                            </button>
+                          )}
+                        </div>
+                        <Input
+                          id="customSonnetModelId"
+                          type="text"
+                          placeholder="claude-sonnet-4-5-20250929 (default)"
+                          value={settings.customSonnetModelId || ''}
+                          onChange={(e) =>
+                            onSettingsChange({
+                              ...settings,
+                              customSonnetModelId: e.target.value || undefined
+                            })
+                          }
+                          className="max-w-lg text-sm font-mono"
+                        />
+                        {settings.customSonnetModelId && (
+                          <div className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                            <Check className="h-3 w-3" />
+                            Custom active
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Opus Input with Reset */}
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="customOpusModelId" className="text-xs text-muted-foreground">
+                            Opus Model ID
+                          </Label>
+                          {settings.customOpusModelId && (
+                            <button
+                              onClick={() => onSettingsChange({ ...settings, customOpusModelId: undefined })}
+                              className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                            >
+                              <RefreshCw className="h-3 w-3" />
+                              Reset
+                            </button>
+                          )}
+                        </div>
+                        <Input
+                          id="customOpusModelId"
+                          type="text"
+                          placeholder="claude-opus-4-5-20251101 (default)"
+                          value={settings.customOpusModelId || ''}
+                          onChange={(e) =>
+                            onSettingsChange({
+                              ...settings,
+                              customOpusModelId: e.target.value || undefined
+                            })
+                          }
+                          className="max-w-lg text-sm font-mono"
+                        />
+                        {settings.customOpusModelId && (
+                          <div className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                            <Check className="h-3 w-3" />
+                            Custom active
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="rounded-lg bg-warning/10 border border-warning/30 p-3">

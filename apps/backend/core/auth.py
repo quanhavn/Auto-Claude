@@ -195,14 +195,39 @@ def get_sdk_env_vars() -> dict[str, str]:
     Collects relevant env vars (ANTHROPIC_BASE_URL, etc.) that should
     be passed through to the claude-agent-sdk subprocess.
 
+    Priority order for ANTHROPIC_BASE_URL and ANTHROPIC_API_KEY:
+    1. Environment variables (for backwards compatibility)
+    2. Global config file (~/.auto-claude/config.json)
+
     Returns:
         Dict of env var name -> value for non-empty vars
     """
     env = {}
+
+    # First, collect all SDK env vars from environment
     for var in SDK_ENV_VARS:
         value = os.environ.get(var)
         if value:
             env[var] = value
+
+    # Then, overlay with global config values if not already set
+    # This allows global config to provide defaults while env vars can override
+    try:
+        from config import load_global_config
+
+        global_config = load_global_config()
+
+        # Set base URL from global config if not already set by env var
+        if "ANTHROPIC_BASE_URL" not in env and global_config.get("globalAnthropicBaseUrl"):
+            env["ANTHROPIC_BASE_URL"] = global_config["globalAnthropicBaseUrl"]
+
+        # Set API key from global config if not already set by env var
+        if "ANTHROPIC_API_KEY" not in env and global_config.get("globalAnthropicApiKey"):
+            env["ANTHROPIC_API_KEY"] = global_config["globalAnthropicApiKey"]
+    except (ImportError, Exception):
+        # Config module not available or error reading - env vars only
+        pass
+
     return env
 
 

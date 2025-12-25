@@ -23,6 +23,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 # Load .env file from auto-claude/ directory
 from dotenv import load_dotenv
 
+from phase_config import resolve_model_id
+
 env_file = Path(__file__).parent.parent / ".env"
 if env_file.exists():
     load_dotenv(env_file)
@@ -55,8 +57,8 @@ def main():
     parser.add_argument(
         "--model",
         type=str,
-        default="claude-opus-4-5-20251101",
-        help="Model to use (default: claude-opus-4-5-20251101)",
+        default="opus",
+        help="Model to use (shorthand: haiku/sonnet/opus, or full ID)",
     )
     parser.add_argument(
         "--thinking-level",
@@ -109,10 +111,13 @@ def main():
         "roadmap_runner", "Creating RoadmapOrchestrator", project_dir=str(project_dir)
     )
 
+    # Resolve model ID to support custom models
+    resolved_model = resolve_model_id(args.model)
+
     orchestrator = RoadmapOrchestrator(
         project_dir=project_dir,
         output_dir=args.output,
-        model=args.model,
+        model=resolved_model,
         thinking_level=args.thinking_level,
         refresh=args.refresh,
         enable_competitor_analysis=args.enable_competitor_analysis,

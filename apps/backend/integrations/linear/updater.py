@@ -28,6 +28,7 @@ from pathlib import Path
 from typing import Optional
 
 from claude_agent_sdk import ClaudeAgentOptions, ClaudeSDKClient
+from phase_config import resolve_model_id
 
 # Linear status constants (matching Valma AI team setup)
 STATUS_TODO = "Todo"
@@ -130,7 +131,7 @@ def _create_linear_client() -> ClaudeSDKClient:
 
     return ClaudeSDKClient(
         options=ClaudeAgentOptions(
-            model="claude-haiku-4-5",  # Fast & cheap model for simple API calls
+            model=resolve_model_id("haiku"),  # Fast & cheap model for simple API calls
             system_prompt="You are a Linear API assistant. Execute the requested Linear operation precisely.",
             allowed_tools=LINEAR_TOOLS,
             mcp_servers={
